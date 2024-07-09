@@ -6,14 +6,15 @@ on:
       - main
 
 jobs:
-  build:
+  build_backend:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout backend code
         uses: actions/checkout@v2
+        path: backend  # Path to backend directory
 
-      - name: Set up Docker Buildx
+      - name: Set up Docker Buildx for backend
         uses: docker/setup-buildx-action@v2
 
       - name: Log in to Docker Hub
@@ -22,14 +23,31 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v2
-        with:
-          context: .
-          push: true
-          tags: ananya0710/docker-explore:latest
-
-      - name: Deploy
+      - name: Build and push backend Docker image
+        working-directory: backend  # Set working directory to backend
         run: |
-          # Add commands to deploy your application to a server or cloud provider
-          echo "Deploying..."
+          docker build -t ananya0710/backend:latest .
+          docker push ananya0710/backend:latest
+
+  build_frontend:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout frontend code
+        uses: actions/checkout@v2
+        path: frontend  # Path to frontend directory
+
+      - name: Set up Docker Buildx for frontend
+        uses: docker/setup-buildx-action@v2
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and push frontend Docker image
+        working-directory: frontend  # Set working directory to frontend
+        run: |
+          docker build -t ananya0710/frontend:latest .
+          docker push ananya0710/frontend:latest
