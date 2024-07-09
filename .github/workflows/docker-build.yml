@@ -6,14 +6,14 @@ on:
       - main
 
 jobs:
-  build_backend:
+  build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout backend code
+      - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Set up Docker Buildx for backend
+      - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
       - name: Log in to Docker Hub
@@ -22,28 +22,21 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Build and push backend Docker image
-        run: |
-          docker build -t django-backend .
-          docker push django-backend
-
-  build_frontend:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout frontend code
-        uses: actions/checkout@v2
-
-      - name: Set up Docker Buildx for frontend
-        uses: docker/setup-buildx-action@v2
-
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v1
+      - name: Build and push Backend Docker image
+        uses: docker/build-push-action@v2
         with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+          context: be               # Path to backend Dockerfile
+          push: true
+          tags: ananya0710/docker-explore:backend
 
-      - name: Build and push frontend Docker image
+      - name: Build and push Frontend Docker image
+        uses: docker/build-push-action@v2
+        with:
+          context: fe               # Path to frontend Dockerfile
+          push: true
+          tags: ananya0710/docker-explore:frontend
+
+      - name: Deploy
         run: |
-          docker build -t react-frontend .  
-          docker push react-frontend
+          # Add commands to deploy your application to a server or cloud provider
+          echo "Deploying..."
