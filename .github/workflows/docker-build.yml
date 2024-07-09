@@ -12,7 +12,6 @@ jobs:
     steps:
       - name: Checkout backend code
         uses: actions/checkout@v2
-        path: backend  # Path to backend directory
 
       - name: Set up Docker Buildx for backend
         uses: docker/setup-buildx-action@v2
@@ -24,9 +23,8 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Build and push backend Docker image
-        working-directory: backend  # Set working directory to backend
         run: |
-          docker build -t ananya0710/backend:latest .
+          docker build -t ananya0710/backend:latest ./backend
           docker push ananya0710/backend:latest
 
   build_frontend:
@@ -35,7 +33,6 @@ jobs:
     steps:
       - name: Checkout frontend code
         uses: actions/checkout@v2
-        path: frontend  # Path to frontend directory
 
       - name: Set up Docker Buildx for frontend
         uses: docker/setup-buildx-action@v2
@@ -47,7 +44,6 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Build and push frontend Docker image
-        working-directory: frontend  # Set working directory to frontend
         run: |
-          docker build -t ananya0710/frontend:latest .
+          docker build -t ananya0710/frontend:latest ./frontend
           docker push ananya0710/frontend:latest
