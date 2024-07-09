@@ -45,5 +45,5 @@ jobs:
 
       - name: Build and push frontend Docker image
         run: |
-          docker build -t ananya0710/frontend:latest ./frontend
-          docker push ananya0710/frontend:latest
+          docker build -t react-frontend .  
+          docker push react-frontend
