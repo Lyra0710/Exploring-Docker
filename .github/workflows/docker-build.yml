@@ -5,7 +5,7 @@ on:
     branches: [ main ]
  
 env:
-  SERVICE_NAME: ${{ github.event.repository.name }}
+  SERVICE_NAME: docker-explore
   RUN_REGION: us-central1
   PORT: 8000
   COMMIT_SHA: ${{ github.sha }}
