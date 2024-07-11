@@ -50,7 +50,7 @@ jobs:
  
         - name: Build Docker image
 
-          run: docker build -t $IMAGE_NAME ./be/Dockerfile
+          run: docker build -t $IMAGE_NAME -f ./be/Dockerfile ./be
  
         - name: Push Docker image
 
