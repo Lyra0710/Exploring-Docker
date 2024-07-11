@@ -56,9 +56,7 @@ jobs:
  
     - name: Build Docker image
 
-      run: docker build -t $IMAGE_NAME .
-
-      working-directory: ./be # Adjust the path to your backend directory
+      run: docker build -t $IMAGE_NAME ./be
  
     - name: Push Docker image
 
