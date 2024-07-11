@@ -1,86 +1,87 @@
-name: Deploy to GCP
-
+name: Deploy to Dev
+ 
 on:
+
   push:
+
     branches: [ main ]
+ 
+env:
 
+  SERVICE_NAME: ${{ github.event.repository.name }}
+
+  RUN_REGION: us-central1
+
+  PORT: 8000
+
+  COMMIT_SHA: ${{ github.sha }}
+ 
 jobs:
-  deploy-backend:
-    name: Deploy Backend Service
+ 
+  deploy:
+ 
+    name: Setup Gcloud Account
+
     runs-on: ubuntu-latest
+
     env:
-      GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
-      GCP_SERVICE_NAME_BACKEND: backend-service
-      GCP_REGION: us-central1
-      GCP_MEMORY: 2G
-      GCP_MIN_INSTANCES: 1
-      GCP_MAX_INSTANCES: 3
+
+      IMAGE_NAME: gcr.io/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_APP_NAME }}:${{ github.sha }}
+
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
+ 
+    - name: Login
 
-      - name: Setup Google Cloud SDK
-        uses: google-github-actions/setup-gcloud@v2
-        with:
-          service_account_email: ${{ secrets.GCP_DEV_EMAIL }}
-          service_account_key: ${{ secrets.GCP_DEV_CREDENTIALS }}
-          project_id: ${{ secrets.GCP_PROJECT_ID }}
+      uses: google-github-actions/setup-gcloud@master
 
-      - name: Configure Docker for Google Cloud
-        run: gcloud auth configure-docker --quiet
+      with:
 
-      - name: Build and push Backend Docker image
-        run: |
-          docker build -t gcr.io/${{ secrets.GCP_PROJECT_ID }}/backend-service:latest ./be
-          docker push gcr.io/${{ secrets.GCP_PROJECT_ID }}/backend-service:latest
+        project_id: ${{ secrets.GCP_PROJECT_ID }}
 
-      - name: Deploy Backend Docker image to Cloud Run
-        run: |
-          gcloud run deploy $GCP_SERVICE_NAME_BACKEND \
-            --image gcr.io/${{ secrets.GCP_PROJECT_ID }}/backend-service:latest \
-            --platform managed \
-            --region $GCP_REGION \
-            --memory $GCP_MEMORY \
-            --min-instances $GCP_MIN_INSTANCES \
-            --max-instances $GCP_MAX_INSTANCES \
-            --allow-unauthenticated
+        service_account_email: ${{ secrets.GCP_DEV_EMAIL }}
 
-  deploy-frontend:
-    name: Deploy Frontend Service
-    runs-on: ubuntu-latest
-    env:
-      GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
-      GCP_SERVICE_NAME_FRONTEND: frontend-service
-      GCP_REGION: asia-south1 (Mumbai)
-      GCP_MEMORY: 1G
-      GCP_MIN_INSTANCES: 1
-      GCP_MAX_INSTANCES: 3
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
+        service_account_key: ${{ secrets.GCP_DEV_CREDENTIALS }}
+ 
+    - name: Configure Docker
 
-      - name: Setup Google Cloud SDK
-        uses: google-github-actions/setup-gcloud@v2
-        with:
-          service_account_email: ${{ secrets.GCP_DEV_EMAIL }}
-          service_account_key: ${{ secrets.GCP_DEV_CREDENTIALS }}
-          project_id: ${{ secrets.GCP_PROJECT_ID }}
+      run: gcloud auth configure-docker --quiet
+ 
+    - name: Checkout repository
 
-      - name: Configure Docker for Google Cloud
-        run: gcloud auth configure-docker --quiet
+      uses: actions/checkout@v2
+ 
+    - name: Set up Docker Buildx
 
-      - name: Build and push Frontend Docker image
-        run: |
-          docker build -t gcr.io/${{ secrets.GCP_PROJECT_ID }}/frontend-service:latest ./fe
-          docker push gcr.io/${{ secrets.GCP_PROJECT_ID }}/frontend-service:latest
+      uses: docker/setup-buildx-action@v1
+ 
+    - name: Build Docker image
 
-      - name: Deploy Frontend Docker image to Cloud Run
-        run: |
-          gcloud run deploy $GCP_SERVICE_NAME_FRONTEND \
-            --image gcr.io/${{ secrets.GCP_PROJECT_ID }}/frontend-service:latest \
-            --platform managed \
-            --region $GCP_REGION \
-            --memory $GCP_MEMORY \
-            --min-instances $GCP_MIN_INSTANCES \
-            --max-instances $GCP_MAX_INSTANCES \
-            --allow-unauthenticated
+      run: docker build -t $IMAGE_NAME .
+
+      working-directory: ./be # Adjust the path to your backend directory
+ 
+    - name: Push Docker image
+
+      run: docker push $IMAGE_NAME
+ 
+    - name: Deploy Docker image to Cloud Run
+
+      run: |
+
+        gcloud run deploy $SERVICE_NAME \
+
+          --image $IMAGE_NAME \
+
+          --region $RUN_REGION \
+
+          --platform managed \
+
+          --port $PORT \
+
+          --memory 2Gi \
+
+          --min-instances 1 \
+
+          --max-instances 3 \
+
+          --allow-unauthenticated
