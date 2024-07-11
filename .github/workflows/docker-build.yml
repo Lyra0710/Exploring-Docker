@@ -10,8 +10,6 @@ env:
   PORT: 8000
   COMMIT_SHA: ${{ github.sha }}
 
-  # SPRING_PROFILES_ACTIVE: server-dev
- 
 jobs:
  
     deploy:
@@ -59,4 +57,3 @@ jobs:
         - name: Deploy Docker image
 
           run: gcloud run deploy $SERVICE_NAME --port 8000 --project ${{ secrets.GCP_PROJECT_ID }} --memory 2G --min-instances 1 --max-instances 3  --cpu-boost  --image $IMAGE_NAME --region us-central1 --allow-unauthenticated --platform managed
- 
